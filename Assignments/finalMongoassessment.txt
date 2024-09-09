@@ -1,0 +1,123 @@
+
+
+
+1. Give per share the average closing price, the minimum closing price, the maximum closing price and the average number of shares traded per day.
+db.bel20.aggregate([
+  {
+    $group: {
+      _id: null,
+      avgClosingPrice: { $avg: "$price.end" },
+      minClosingPrice: { $min: "$price.end" },
+      maxClosingPrice: { $max: "$price.end" },
+      avgVolume: { $avg: "$number" }
+    }
+  }
+]);
+
+2. Give per share the minimum closing price and the week in which this minimum closing price occurred. E.g.
+//KBC: minprice = 39.1 ; week = 44
+//Elia: minprice = 33.38 ; week = 46
+db.bel20.aggregate([
+  {
+    $group: {
+      _id: "$name",
+      minprice: { $min: "$price.end" },
+      date: { $first: "$date" }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      minprice: 1,
+      week: { $isoWeek: "$date" }
+    }
+  }
+])
+
+
+3. Specify the number of cheeses per cheesetype. Put the cheesetype in capital letters.
+ db.cheeses.aggregate([{$group:{_id:{$toUpper:"$property.cheesetype"},count:{$count:{}}}}]);  
+
+4. Give the number of cheeses per cheese factory with at least 2 variants.
+db.cheeses.aggregate([
+  {
+    $match: {
+      variants: { $size: 2  }
+    }
+  },
+  {
+    $group: {
+      _id: "$factory",
+      count: { $sum: 1 }
+    }
+  }
+])
+5. normalize usernames: in upper case and in alphabetical order
+ db.userdetails.aggregate({
+$project:{username:{$toUpper:"$user_id"}}},
+{$sort:{username:1}});
+
+6. Return the Five Most Common “Likes”
+db.userdetails.aggregate([
+  { $unwind: "$likes" },
+  { $group: { _id: "$likes", count: { $sum: 1 } } },
+  { $sort: { count: -1 } },
+  { $limit: 5 }
+]);
+
+7. Return States with Populations above 10 Million
+ db.Zipcodes.aggregate([{$group:{_id:"$state",totalpop:{$sum:"$pop"}}},{$match:{totalpop:{$gte:10000000}}}]);         
+
+8. Return Average City Population by State
+db.Zipcodes.aggregate([ { $group: { _id: { state: "$state", city: "$city" }, pop: { $sum: "$pop" } } },
+ { $group: { _id: "$_id.state", avgCityPop: { $avg: "$pop" } } }] );
+ 
+
+9. Return Largest and Smallest Cities by State (name and population)
+db.Zipcodes.aggregate( [
+   { $group:
+      {
+        _id: { state: "$state", city: "$city" },
+        pop: { $sum: "$pop" }
+      }
+   },
+   { $sort: { pop: 1 } },
+   { $group:
+      {
+        _id : "$_id.state",
+        biggestCity:  { $last: "$_id.city" },
+        biggestPop:   { $last: "$pop" },
+        smallestCity: { $first: "$_id.city" },
+        smallestPop:  { $first: "$pop" }
+      }
+   },
+
+    { $project:
+    { _id: 0,
+      state: "$_id",
+      biggestCity:  { name: "$biggestCity",  pop: "$biggestPop" },
+      smallestCity: { name: "$smallestCity", pop: "$smallestPop" }
+    }
+  }
+] )
+
+10. Return the top 5 states with the most number of cities
+db.Zipcodes.aggregate([{$group:{_id:"$state",countcity:{$sum:1}}},{$sort:{countcity:-1}},{$limit:5}]);
+
+11. fetch the result by sorting on "education" column in ascending order
+db.userdetails.find().sort({education:1});
+
+12. fetch the result by sorting on "education" column in descending order
+db.userdetails.find().sort({education:-1});
+
+13. fetch the result by sorting on "education" column in ascending order and "password" column in descending order
+db.userdetails.find().sort([{education:1,password:-1}]);
+
+14. fetch first two documents from the collection "userdetails"
+db.userdetails.find().limit(2); 
+
+15. fetch two documents after the first two documents from the collection 'userdetails'
+db.userdetails.find().limit(2).skip(2);
+
+16. fetch the two documents after the first document from the collection 'userdetails'
+db.userdetails.find().limit(2).skip(1); 

@@ -1,0 +1,11 @@
+fetch the result by sorting on "education" column in ascending order
+
+fetch the result by sorting on "education" column in descending order
+
+fetch the result by sorting on "education" column in ascending order and "password" column in descending order
+
+fetch first two documents from the collection "userdetails"
+
+fetch two documents after the first two documents from the collection 'userdetails'
+
+fetch the two documents after the first document from the collection 'userdetails'
